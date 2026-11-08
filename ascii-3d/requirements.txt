@@ -1,0 +1,18 @@
+# ascii-3d dependencies (main environment, Python 3.11+; tested on 3.13).
+# Install PyTorch FIRST with the right CUDA build for your GPU, e.g.
+#   pip install torch --index-url https://download.pytorch.org/whl/cu130
+# A plain `pip install torch` on Windows gives a CPU-only build. That works,
+# but the depth model is ~10x slower.
+#
+# Versions are the ones this project was tested with.
+torch>=2.6
+transformers>=4.45      # Depth Anything V2 support
+open3d>=0.18            # mesh/point cloud containers, PLY/OBJ I/O, viewer
+numpy>=2.0
+pillow>=10.1
+matplotlib>=3.8         # depth preview / lighting study figures, --show
+imageio>=2.31           # GIF/MP4 export
+imageio-ffmpeg>=0.5     # MP4 encoder
+
+# TripoSR is NOT listed here on purpose: it lives in external/TripoSR with
+# its own virtual environment. See GUIDE.md, "Setting up TripoSR".

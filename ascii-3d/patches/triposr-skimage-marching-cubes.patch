@@ -1,0 +1,47 @@
+diff --git a/tsr/models/isosurface.py b/tsr/models/isosurface.py
+index 076321b..c20c1b4 100644
+--- a/tsr/models/isosurface.py
++++ b/tsr/models/isosurface.py
+@@ -3,7 +3,30 @@ from typing import Callable, Optional, Tuple
+ import numpy as np
+ import torch
+ import torch.nn as nn
+-from torchmcubes import marching_cubes
++
++try:
++    from torchmcubes import marching_cubes
++except ImportError:
++    # ascii-studio patch: torchmcubes needs a C++/CUDA compiler to build.
++    # Fall back to scikit-image's marching cubes (CPU only).
++    marching_cubes = None
++    from skimage import measure as _skimage_measure
++
++
++def _skimage_marching_cubes(level: torch.Tensor, threshold: float):
++    """
++    scikit-image fallback. Returns vertices in array-index order (i, j, k),
++    i.e. already the order torchmcubes output is swapped into below.
++    """
++    verts, faces, _, _ = _skimage_measure.marching_cubes(
++        level.cpu().numpy(), threshold
++    )
++    v_pos = torch.from_numpy(verts.astype(np.float32))
++    # skimage winds triangles so normals point towards decreasing values;
++    # here the inside of the object is positive, so reverse the winding to
++    # get outward-facing normals (checked: a sphere now has positive volume).
++    t_pos_idx = torch.from_numpy(faces[:, ::-1].astype(np.int64).copy())
++    return v_pos, t_pos_idx
+ 
+ 
+ class IsosurfaceHelper(nn.Module):
+@@ -42,6 +65,10 @@ class MarchingCubeHelper(IsosurfaceHelper):
+         level: torch.FloatTensor,
+     ) -> Tuple[torch.FloatTensor, torch.LongTensor]:
+         level = -level.view(self.resolution, self.resolution, self.resolution)
++        if marching_cubes is None:
++            v_pos, t_pos_idx = _skimage_marching_cubes(level.detach(), 0.0)
++            v_pos = v_pos / (self.resolution - 1.0)
++            return v_pos.to(level.device), t_pos_idx.to(level.device)
+         try:
+             v_pos, t_pos_idx = self.mc_func(level.detach(), 0.0)
+         except AttributeError:

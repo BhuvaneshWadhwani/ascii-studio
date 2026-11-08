@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 *.egg-info/
-.pytest_cache/
+
 
 # Virtual environments
 .venv/
@@ -11,6 +11,9 @@ env/
 
 # Generated output
 */output/
+
+# Third-party repos cloned locally (e.g. TripoSR, with its own venv)
+*/external/
 
 # Editors / OS
 .vscode/
