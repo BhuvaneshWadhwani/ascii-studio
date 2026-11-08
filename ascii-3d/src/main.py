@@ -41,6 +41,12 @@ from pipeline import (
 # ascii-3d/assets/ and write its file name here (a full path also works).
 IMAGE = "input.jpg"
 
+# Fun extras for the animation window. Set to False (or None) to turn off.
+TYPED_INTRO = True       # the first frame is typed out row by row
+DECODE_INTRO = False      # random characters "lock in" to the image
+GLITCHES = False          # every few seconds, rows slide and characters flicker
+RETRO_COLOUR = None   # "green", "amber", or None for plain white
+
 log = logging.getLogger("ascii3d")
 
 
@@ -168,6 +174,7 @@ def animate(scene: Scene, mode: str, config: Config, args: argparse.Namespace, o
         save_animation(frames, out_dir / f"{mode}_animation.{args.animate}", config.fps, config.animation_font_size)
 
     if not args.no_window:
+        from effects import Effects
         from viewer import play_in_window
 
         wide = dataclasses.replace(config, ascii_width=config.window_ascii_width)
@@ -178,6 +185,7 @@ def animate(scene: Scene, mode: str, config: Config, args: argparse.Namespace, o
                 fps=config.fps,
                 title=f"ASCII Studio 3D - {config.image_path.name} ({mode})",
                 font_family=font_family(),
+                effects=Effects(TYPED_INTRO, DECODE_INTRO, GLITCHES, RETRO_COLOUR),
             )
         except Exception as error:  # e.g. no display available
             log.warning("Could not open the window: %s", error)

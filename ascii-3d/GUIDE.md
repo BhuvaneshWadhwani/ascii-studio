@@ -26,7 +26,7 @@ Settings that aren't on the command line (depth, light direction, swing angle, s
 
 ### 1. The overall flow
 
-`run()` in `src/main.py`, lines 186–238 is the whole program: load the photo, build the 3D scene, save still images, animate.
+`run()` in `src/main.py`, lines 194–246 is the whole program: load the photo, build the 3D scene, save still images, animate.
 
 `src/pipeline.py` connects the steps. Look at `estimate_depth()` in `src/pipeline.py`, lines 63–76, `build_depth_scene()` in `src/pipeline.py`, lines 93–124 and `render_view()` in `src/pipeline.py`, lines 165–209. Every render mode goes through `render_view`, and both ways of building a scene (depth or TripoSR) produce the same `Scene`, so all modes work with either.
 
@@ -138,8 +138,13 @@ The **hybrid** mode in `render_view` adds the lit surface and these lines togeth
 ### 13. Animation and the window
 
 - `swing_angles()` in `src/animation.py`, lines 33–41: the relief has no back, so it rocks ±30° along a sine instead of spinning.
-- `play_in_window()` in `src/viewer.py`, lines 54–165 renders frames when first needed and caches them by angle, so after the first swing everything plays smoothly.
+- `play_in_window()` in `src/viewer.py`, lines 95–251 renders frames when first needed and caches them by angle, so after the first swing everything plays smoothly.
 - `save_animation()` in `src/animation.py`, lines 95–114 writes a GIF or MP4.
+- `src/effects.py` adds the fun extras, switched on and off at the top of `main.py`:
+  - `typed_frames()` in `src/effects.py`, lines 50–67 reveals the first frame row by row, with a cursor.
+  - `decode_frames()` in `src/effects.py`, lines 70–88 gives every character a random moment to "lock in" from noise.
+  - `glitch()` in `src/effects.py`, lines 110–133 slides a band of rows sideways, swaps two rows and adds a little noise. The window shows it for a few frames every few seconds.
+  - `COLOURS` sets the green or amber text, and the window dims it at random moments for a CRT flicker.
 
 ### 14. TripoSR (optional)
 

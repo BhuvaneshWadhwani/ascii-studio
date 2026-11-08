@@ -71,7 +71,7 @@ Shown left to right: photo, model output, subject mask, final depth.
 
 ![Render and its ASCII version](ascii-3d/images/07_ascii.png)
 
-**8. Animation window.** `python ascii-3d/src/main.py` opens a window where the subject swings slowly from side to side.
+**8. Animation window.** `python ascii-3d/src/main.py` opens a window where the subject swings slowly from side to side. For fun, it types itself in, decodes from noise, glitches now and then, and glows like an old green terminal (each effect has a switch at the top of `main.py`).
 
 ![Animation window](ascii-3d/images/08_window.png)
 
