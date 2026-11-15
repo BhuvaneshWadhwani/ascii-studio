@@ -150,7 +150,7 @@ def preview_terminal(cinema, fps):
         out.write("\x1b[0m\x1b[?25h\n")  # reset colours, show the cursor
 
 
-def _ffmpeg_settings(fmt):
+def _ffmpeg_settings(fmt, gif_colors=256):
     if fmt == "mp4":
         # yuv420p is what every player supports. It stores colour at half
         # resolution, so thin coloured glyphs bleed slightly; CRF 18 keeps
@@ -163,17 +163,23 @@ def _ffmpeg_settings(fmt):
         # paletteuse new=1 applies it, which works while streaming (a single
         # global palette would need to see every frame first). No dithering,
         # because dither noise around thin glyphs looks worse than banding.
-        graph = ("split[a][b];[a]palettegen=stats_mode=single[p];"
+        #
+        # gif_colors caps the palette. A zoom changes every pixel in every
+        # frame, so GIF can't save space by reusing the previous frame; a
+        # smaller palette is the main way to shrink the file. ASCII frames
+        # use few distinct colours, so 64 looks almost the same as 256 at
+        # roughly a third less size.
+        graph = (f"split[a][b];[a]palettegen=stats_mode=single:max_colors={gif_colors}[p];"
                  "[b][p]paletteuse=new=1:dither=none")
         return dict(codec="gif", pix_fmt_out="pal8",
                     output_params=["-filter_complex", graph, "-loop", "0"])
     raise ValueError(f"format must be 'gif' or 'mp4', got {fmt!r}")
 
 
-def export(cinema, path, fps, loops=1):
+def export(cinema, path, fps, loops=1, gif_colors=256):
     """Render the animation to a GIF or MP4 file, chosen by the extension."""
     fmt = path.suffix.lower().lstrip(".")
-    settings = _ffmpeg_settings(fmt)
+    settings = _ffmpeg_settings(fmt, gif_colors)
     path.parent.mkdir(parents=True, exist_ok=True)
 
     n_frames = cinema.frame_count(fps, loops)

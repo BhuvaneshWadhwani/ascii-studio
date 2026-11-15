@@ -13,10 +13,10 @@ env/
 */output/
 
 # Rendered animations are large; export them locally instead of committing.
-# (Files git already tracks, like ascii-3d/images/09_swing.gif, are not
-# affected by this; remove those with `git rm --cached` if wanted.)
+# The exception is the small README GIFs kept in each project's images/ folder.
 *.gif
 *.mp4
+!*/images/*.gif
 
 # Test cache
 .pytest_cache/

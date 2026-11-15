@@ -5,6 +5,8 @@ where the second photo is waiting in the pupil, growing until it *is* the
 picture, then into its eye, where the first photo is waiting, and so on, with
 no visible seam.
 
+![The loop](images/04_loop.gif)
+
 ![The two photos and their colour ASCII versions](images/00_photos_and_ascii.png)
 
 ![Key moments of the loop](images/01_sequence.png)
@@ -51,10 +53,15 @@ python ascii-cinema/src/main.py --still 7            # one frame as a PNG, for t
 `--pair`, `--loops N`, `--fps`, `--speed`, `--columns` and `--font-size` work
 with every mode. Run with `--help` for the full list.
 
-MP4 is the better format for this animation: about 12 MB for a full loop at
-the default size. GIF has to compress lots of fine coloured glyphs, so it grows
-quickly (around 100 MB at the default size; use something like `--columns 72
---font-size 8 --fps 20` to get it near 10 MB).
+MP4 is the better format for full quality: about 12 MB for a full loop at the
+default size. GIF struggles with this animation. The zoom changes every pixel
+in every frame, so GIF can't reuse the previous frame, and the file grows
+quickly. The README GIF above (8 MB) was made with a small grid, 10 fps and a
+64-colour palette:
+
+```bash
+python ascii-cinema/src/main.py --pair kittens --export gif --columns 56 --font-size 12 --fps 10 --gif-colors 64 -o ascii-cinema/images/04_loop.gif
+```
 
 ## Configuration
 

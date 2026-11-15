@@ -50,6 +50,8 @@ def parse_args(argv=None):
     p.add_argument("--font-size", type=int,
                    help=f"pixel size of the characters (default: {config.FONT_SIZE}); "
                    "with --columns, sets the frame size in pixels")
+    p.add_argument("--gif-colors", type=int, default=256, choices=[16, 32, 64, 128, 256],
+                   help="colours per GIF frame; fewer = smaller file (default: 256)")
     p.add_argument("--speed", type=float, help=f"zoom speed in doublings per second (default: {config.ZOOM_SPEED})")
     p.add_argument("--focus-a", type=_point, metavar="X,Y", help="override image A's focus point")
     p.add_argument("--focus-b", type=_point, metavar="X,Y", help="override image B's focus point")
@@ -129,7 +131,7 @@ def main(argv=None):
 
     if args.export:
         path = Path(args.output) if args.output else cfg.OUTPUT_DIR / f"ascii_cinema_{args.pair}.{args.export}"
-        export(cinema, path, args.fps, args.loops)
+        export(cinema, path, args.fps, args.loops, args.gif_colors)
     elif args.still is not None:
         path = Path(args.output) if args.output else cfg.OUTPUT_DIR / f"still_{args.pair}_{args.still:.2f}s.png"
         path.parent.mkdir(parents=True, exist_ok=True)

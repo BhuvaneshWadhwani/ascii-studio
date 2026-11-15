@@ -111,6 +111,8 @@ python ascii-cinema/src/main.py --pair kittens --export mp4
 
 **2. Images inside images.** Each photo sits in the other's pupil. A 2D camera with sub-pixel sampling and mipmaps zooms in through them, smoothly in log space, never stopping. The picture in the eye starts a few characters wide and grows until it fills the frame and becomes the image.
 
+![The loop](ascii-cinema/images/04_loop.gif)
+
 ![Key moments of the loop](ascii-cinema/images/01_sequence.png)
 
 ![The white cat inside the kitten's eye](ascii-cinema/images/02_portal.png)
