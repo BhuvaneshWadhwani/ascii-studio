@@ -6,9 +6,10 @@ Turning images into ASCII art, from a flat photo to a 3D model.
 | --- | --- | --- |
 | 1 | [ascii-static](ascii-static/) | Photo → ASCII art |
 | 2 | [ascii-3d](ascii-3d/) | Photo → 3D reconstruction → animated ASCII |
-| 3 | In progress | |
+| 3 | [ascii-cinema](ascii-cinema/) | Two photos → recursive full-colour ASCII zoom |
+| 4 | In progress | |
 
-Each project has a `GUIDE.md` that walks through its code step by step.
+Each project has a guide that walks through its code step by step.
 
 ## Setup
 
@@ -92,7 +93,35 @@ python src/main.py --source triposr   # AI-generated mesh (setup in the guide)
 
 ---
 
-## 3. In progress
+## 3. ascii-cinema
+
+A full-colour ASCII animation that zooms forever: the second photo sits in the pupil of the first and grows until it is the picture, with the first photo already waiting in its eye. It loops with no seam.
+
+```bash
+pip install -r ascii-cinema/requirements.txt
+python ascii-cinema/src/main.py --pair kittens            # preview window
+python ascii-cinema/src/main.py --pair kittens --export mp4
+```
+
+**1. Colour ASCII.** Character density shows brightness, and each character is drawn in the photo's own colour. The characters are bold and measured for ink, like in ascii-static.
+
+![The two photos and their colour ASCII versions](ascii-cinema/images/00_photos_and_ascii.png)
+
+![Close-up of the characters](ascii-cinema/images/03_close_up.png)
+
+**2. Images inside images.** Each photo sits in the other's pupil. A 2D camera with sub-pixel sampling and mipmaps zooms in through them, smoothly in log space, never stopping. The picture in the eye starts a few characters wide and grows until it fills the frame and becomes the image.
+
+![Key moments of the loop](ascii-cinema/images/01_sequence.png)
+
+![The white cat inside the kitten's eye](ascii-cinema/images/02_portal.png)
+
+**3. Finishing.** A colour grade, a vignette and a soft glow around bright characters.
+
+[README](ascii-cinema/README.md) · [Learning guide](ascii-cinema/docs/LEARNING_GUIDE.md)
+
+---
+
+## 4. In progress
 
 ---
 

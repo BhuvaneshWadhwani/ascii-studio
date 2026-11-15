@@ -39,7 +39,7 @@ from pipeline import (
 
 # The photo to use when none is given on the command line. Put an image in
 # ascii-3d/assets/ and write its file name here (a full path also works).
-IMAGE = "input.jpg"
+IMAGE = "test3.jpg"
 
 # Fun extras for the animation window. Set to False (or None) to turn off.
 TYPED_INTRO = True       # the first frame is typed out row by row

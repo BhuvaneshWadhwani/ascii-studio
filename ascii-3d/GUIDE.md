@@ -39,16 +39,16 @@ Settings that aren't on the command line (depth, light direction, swing angle, s
 
 ### 3. Cutting out the subject
 
-`subject_mask()` in `src/depth.py`, lines 123–157 decides which pixels are the subject:
+`subject_mask()` in `src/depth.py`, lines 165–202 decides which pixels are the subject:
 
-- **Plain backdrop** (`_plain_background()` in `src/depth.py`, lines 95–120): if the border is one colour, the background is everything of that colour connected to the border (a flood fill). The open mouth is dark too, but not connected to the border, so it stays.
-- **Otherwise**: split the disparity into "near" and "far" with Otsu's method (`_otsu_threshold()` in `src/depth.py`, lines 70–92), which picks the cut that maximises `w0 · w1 · (mean0 − mean1)²`.
+- **Plain backdrop** (`_plain_background()` in `src/depth.py`, lines 114–128): if the border is one colour, the background is everything of that colour connected to the border (a flood fill). The open mouth is dark too, but not connected to the border, so it stays.
+- **Otherwise**: split the disparity into "near" and "far" with Otsu's method (`_otsu_threshold()` in `src/depth.py`, lines 70–92), which picks the cut that maximises `w0 · w1 · (mean0 − mean1)²`. Thin bright parts, like glittery wings, can look as far away as the background, so bright white/grey areas are added too (`_bright_areas()` in `src/depth.py`, lines 131–145), as long as they touch the subject (`_grow_into()` in `src/depth.py`, lines 148–162) and not the image border.
 
 A small erosion followed by a dilation (an "opening") removes specks.
 
 ### 4. Giving the subject depth
 
-`subject_relief()` in `src/depth.py`, lines 160–215:
+`subject_relief()` in `src/depth.py`, lines 205–260:
 
 ```
 far    = near + relief · subject_width                       (subject 70% as deep as wide)

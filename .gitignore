@@ -12,6 +12,15 @@ env/
 # Generated output
 */output/
 
+# Rendered animations are large; export them locally instead of committing.
+# (Files git already tracks, like ascii-3d/images/09_swing.gif, are not
+# affected by this; remove those with `git rm --cached` if wanted.)
+*.gif
+*.mp4
+
+# Test cache
+.pytest_cache/
+
 # Third-party repos cloned locally (e.g. TripoSR, with its own venv)
 */external/
 

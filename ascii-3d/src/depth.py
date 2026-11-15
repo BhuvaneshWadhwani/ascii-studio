@@ -92,24 +92,15 @@ def _otsu_threshold(values: np.ndarray, bins: int = 256) -> float:
     return float(centres[np.argmax(between)])
 
 
-def _plain_background(gray: np.ndarray, tolerance: float) -> np.ndarray | None:
-    """Background mask for photos on a plain backdrop, or None if it isn't one.
+def _connected_to_border(mask: np.ndarray) -> np.ndarray:
+    """The part of `mask` that is connected to the image border.
 
-    If (nearly) the whole border has one brightness, the background is every
-    pixel of that brightness that is CONNECTED to the border, found with a
-    flood fill. Dark areas inside the subject (an open mouth) aren't
-    connected to the border, so they stay part of the subject.
+    A flood fill starts from every border pixel that is in the mask and
+    spreads to all mask pixels it can reach.
     """
-    border = np.concatenate([gray[0], gray[-1], gray[:, 0], gray[:, -1]])
-    backdrop = np.median(border)
-
-    if np.mean(np.abs(border - backdrop) < tolerance) < 0.95:
-        return None
-
-    similar = (np.abs(gray - backdrop) < tolerance).astype(np.uint8) * 255
     # copy(): floodfill doesn't work on an image that shares a NumPy buffer.
-    fill = Image.fromarray(similar).copy()
-    height, width = gray.shape
+    fill = Image.fromarray(mask.astype(np.uint8) * 255).copy()
+    height, width = mask.shape
 
     border_pixels = [(x, y) for x in range(width) for y in (0, height - 1)]
     border_pixels += [(x, y) for y in range(height) for x in (0, width - 1)]
@@ -120,6 +111,57 @@ def _plain_background(gray: np.ndarray, tolerance: float) -> np.ndarray | None:
     return np.asarray(fill) == 128
 
 
+def _plain_background(gray: np.ndarray, tolerance: float) -> np.ndarray | None:
+    """Background mask for photos on a plain backdrop, or None if it isn't one.
+
+    If (nearly) the whole border has one brightness, the background is every
+    pixel of that brightness that is CONNECTED to the border. Dark areas
+    inside the subject (an open mouth) aren't connected to the border, so
+    they stay part of the subject.
+    """
+    border = np.concatenate([gray[0], gray[-1], gray[:, 0], gray[:, -1]])
+    backdrop = np.median(border)
+
+    if np.mean(np.abs(border - backdrop) < tolerance) < 0.95:
+        return None
+
+    return _connected_to_border(np.abs(gray - backdrop) < tolerance)
+
+
+def _bright_areas(image: Image.Image) -> np.ndarray:
+    """True where the photo is bright and colourless (white or grey).
+
+    min(R, G, B) is high only when all three channels are high, so white
+    glitter scores high but a blue sky does not. Blurring joins scattered
+    sparkles into solid areas, and Otsu's threshold picks the cut.
+
+    Bright areas connected to the image border (snow, a white wall) are
+    background, so they're left out.
+    """
+    whiteness = np.asarray(image, dtype=np.uint8).min(axis=2)
+    blurred = Image.fromarray(whiteness).filter(ImageFilter.GaussianBlur(image.width / 100))
+    blurred = np.asarray(blurred, dtype=np.float64)
+    bright = blurred > _otsu_threshold(blurred.ravel())
+    return bright & ~_connected_to_border(bright)
+
+
+def _grow_into(mask: np.ndarray, allowed: np.ndarray, max_steps: int = 500) -> np.ndarray:
+    """Grow `mask` into the `allowed` pixels that touch it.
+
+    Each step expands the mask by one pixel (a 3x3 maximum filter) but keeps
+    only allowed pixels. It stops when nothing changes, so only allowed areas
+    connected to the mask are added; separate ones are left out.
+    """
+    allowed = allowed | mask
+    for _ in range(max_steps):
+        grown = Image.fromarray(mask.astype(np.uint8) * 255).filter(ImageFilter.MaxFilter(3))
+        grown = (np.asarray(grown) > 127) & allowed
+        if np.array_equal(grown, mask):
+            break
+        mask = grown
+    return mask
+
+
 def subject_mask(image: Image.Image, disparity: np.ndarray) -> np.ndarray:
     """True for pixels that belong to the subject, False for background.
 
@@ -127,7 +169,9 @@ def subject_mask(image: Image.Image, disparity: np.ndarray) -> np.ndarray:
       depth model can't help here, since a flat black area gives it nothing
       to judge distance by.
     - Anything else: cut the disparity with Otsu's threshold, i.e. keep the
-      nearer group of pixels.
+      nearer group of pixels. Thin, bright parts (like glittery wings) can
+      look as far away as the background to the depth model, so bright
+      areas touching the subject (but not the image border) are added too.
 
     The mask is then cleaned with an "opening": a minimum filter (erosion)
     removes specks and thin bridges, and a maximum filter (dilation) grows
@@ -140,8 +184,9 @@ def subject_mask(image: Image.Image, disparity: np.ndarray) -> np.ndarray:
     if background is not None:
         mask, method = ~background, "plain backdrop"
     else:
-        mask = disparity > _otsu_threshold(disparity[np.isfinite(disparity)])
-        method = "depth threshold"
+        near = disparity > _otsu_threshold(disparity[np.isfinite(disparity)])
+        mask = _grow_into(near, _bright_areas(image))
+        method = "depth threshold + bright areas"
 
     cleaned = Image.fromarray(mask.astype(np.uint8) * 255)
     cleaned = cleaned.filter(ImageFilter.MinFilter(5)).filter(ImageFilter.MaxFilter(5))

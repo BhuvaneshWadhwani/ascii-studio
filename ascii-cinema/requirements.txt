@@ -1,0 +1,5 @@
+# ascii-cinema dependencies (Python 3.11+; tested on 3.13).
+numpy>=2.0
+pillow>=10.1            # image loading, font rendering, preview window images
+imageio-ffmpeg>=0.5     # bundles ffmpeg; streams frames to GIF/MP4
+pytest>=8               # only for the tests
